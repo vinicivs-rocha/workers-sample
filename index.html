@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Worker canvas manipulation</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>OffscreenCanvas e worker threads</h1>
+
+    <main>
+      <div class="canvases">
+        <div>
+          <span class="canvas-title">Canvas A</span>
+          <canvas id="main" width="200" height="200"></canvas>
+          <div>
+            <button id="main-button" onclick="slowMainThread()">
+              Block main thread
+            </button>
+          </div>
+        </div>
+        <div>
+          <span class="canvas-title">Canvas B</span>
+          <canvas id="worker" width="200" height="200"></canvas>
+
+          <div>
+            <button id="worker-button" onclick="slowdownWorker()">
+              Block worker thread
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          Esta demonstração é baseada no exemplo de
+          <a href="https://glitch.com/@PicchiKevin">Kevin Picchi</a>.
+        </p>
+      </footer>
+    </main>
+
+    <script>
+      const canvasA = document.getElementById("main");
+      const canvasB = document.getElementById("worker");
+
+      const ctxA = canvasA.getContext("2d");
+      const canvasWidth = ctxA.width;
+      const canvasHeight = ctxA.height;
+
+      // Cria intervalo de incrementação no Canvas A
+      let counter = 0;
+      setInterval(() => {
+        redrawCanvasA();
+        counter++;
+      }, 100);
+
+      // Função de redesenho do canvas A
+      function redrawCanvasA() {
+        ctxA.clearRect(0, 0, canvasA.width, canvasA.height);
+        ctxA.font = "24px Verdana";
+        ctxA.textAlign = "center";
+        ctxA.fillText(counter, canvasA.width / 2, canvasA.height / 2);
+      }
+
+      // Realiza trabalho intensivo na main thread
+      function fibonacci(num) {
+        if (num <= 1) {
+          return 1;
+        }
+        return fibonacci(num - 1) + fibonacci(num - 2);
+      }
+
+      function slowMainThread() {
+        fibonacci(42);
+      }
+
+      // Instanciação de uma worker thread
+      const worker = new Worker("worker.js");
+
+      // Envia o canvas B (offscreen) para a worker thread
+      const canvasWorker = canvasB.transferControlToOffscreen();
+      worker.postMessage({ canvas: canvasWorker }, [canvasWorker]);
+
+      // Realiza trabalho intensivo na worker thread
+      function slowdownWorker() {
+        worker.postMessage("slowDown");
+      }
+    </script>
+  </body>
+</html>
