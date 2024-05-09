@@ -40,53 +40,5 @@
         </p>
       </footer>
     </main>
-
-    <script>
-      const canvasA = document.getElementById("main");
-      const canvasB = document.getElementById("worker");
-
-      const ctxA = canvasA.getContext("2d");
-      const canvasWidth = ctxA.width;
-      const canvasHeight = ctxA.height;
-
-      // Cria intervalo de incrementação no Canvas A
-      let counter = 0;
-      setInterval(() => {
-        redrawCanvasA();
-        counter++;
-      }, 100);
-
-      // Função de redesenho do canvas A
-      function redrawCanvasA() {
-        ctxA.clearRect(0, 0, canvasA.width, canvasA.height);
-        ctxA.font = "24px Verdana";
-        ctxA.textAlign = "center";
-        ctxA.fillText(counter, canvasA.width / 2, canvasA.height / 2);
-      }
-
-      // Realiza trabalho intensivo na main thread
-      function fibonacci(num) {
-        if (num <= 1) {
-          return 1;
-        }
-        return fibonacci(num - 1) + fibonacci(num - 2);
-      }
-
-      function slowMainThread() {
-        fibonacci(42);
-      }
-
-      // Instanciação de uma worker thread
-      const worker = new Worker("worker.js");
-
-      // Envia o canvas B (offscreen) para a worker thread
-      const canvasWorker = canvasB.transferControlToOffscreen();
-      worker.postMessage({ canvas: canvasWorker }, [canvasWorker]);
-
-      // Realiza trabalho intensivo na worker thread
-      function slowdownWorker() {
-        worker.postMessage("slowDown");
-      }
-    </script>
   </body>
 </html>
